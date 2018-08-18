@@ -3,12 +3,21 @@ package readas
 import (
 	"github.com/gorilla/mux"
 	"github.com/writeas/go-nodeinfo"
+	"github.com/writeas/go-webfinger"
 	"net/http"
 )
 
 func initRoutes(app *app) {
 	app.router = mux.NewRouter()
 
+	// Federation endpoints
+	wf := webfinger.Default(wfResolver{app})
+	wf.NoTLSHandler = nil
+	// host-meta
+	app.router.HandleFunc("/.well-known/host-meta", app.handler(handleViewHostMeta))
+	// webfinger
+	app.router.HandleFunc(webfinger.WebFingerPath, http.HandlerFunc(wf.Webfinger))
+	// nodeinfo
 	niCfg := nodeInfoConfig(app.cfg)
 	ni := nodeinfo.NewService(*niCfg, nodeInfoResolver{app})
 	app.router.HandleFunc(nodeinfo.NodeInfoPath, http.HandlerFunc(ni.NodeInfoDiscover))
