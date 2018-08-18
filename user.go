@@ -32,7 +32,9 @@ type LocalUser struct {
 func (u *LocalUser) AsPerson(app *app) *activitystreams.Person {
 	accountRoot := u.AccountRoot(app)
 	p := activitystreams.NewPerson(accountRoot)
-	p.Endpoints.SharedInbox = app.cfg.host + "/inbox"
+	p.Endpoints.SharedInbox = app.cfg.host + "/api/inbox"
+	p.PreferredUsername = u.PreferredUsername
+	p.URL = app.cfg.host + "/" + u.PreferredUsername
 	p.Name = u.Name
 	p.Summary = u.Summary
 
