@@ -10,7 +10,7 @@ func initRoutes(app *app) {
 	app.router = mux.NewRouter()
 
 	niCfg := nodeInfoConfig(app.cfg)
-	ni := nodeinfo.NewService(*niCfg, nodeInfoResolver{})
+	ni := nodeinfo.NewService(*niCfg, nodeInfoResolver{app})
 	app.router.HandleFunc(nodeinfo.NodeInfoPath, http.HandlerFunc(ni.NodeInfoDiscover))
 	app.router.HandleFunc(niCfg.InfoURL, http.HandlerFunc(ni.NodeInfo))
 
