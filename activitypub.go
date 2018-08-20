@@ -228,7 +228,7 @@ func handleFetchInbox(app *app, w http.ResponseWriter, r *http.Request) error {
 			b, _ := json.Marshal(m)
 			logInfo("Accept: %s", b)
 			_, actorIRI := f.GetActor(0)
-			fullActor, _, err = fetchActor(app, actorIRI.String())
+			fullActor, remoteUser, err = fetchActor(app, actorIRI.String())
 			return impart.RenderActivityJSON(w, nil, http.StatusAccepted)
 		},
 	}
@@ -240,7 +240,7 @@ func handleFetchInbox(app *app, w http.ResponseWriter, r *http.Request) error {
 	}
 
 	if isAccept {
-		_, err = app.db.Exec("INSERT INTO follows (follower, followee, created) VALUES (?, ?, NOW())", fullActor.ID, u.ID)
+		_, err = app.db.Exec("INSERT INTO follows (follower, followee, created) VALUES (?, ?, NOW())", u.ID, remoteUser.ID)
 		if err != nil {
 			if mysqlErr, ok := err.(*mysql.MySQLError); ok {
 				if mysqlErr.Number != mySQLErrDuplicateKey {
@@ -347,7 +347,7 @@ func handleFollowUser(app *app, w http.ResponseWriter, r *http.Request) error {
 			}
 		}
 	} else {
-		logInfo("Actor is local", actorIRI)
+		logInfo("Actor is local")
 	}
 
 	// Send follow request
