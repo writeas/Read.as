@@ -4,6 +4,7 @@ import (
 	"github.com/writeas/go-webfinger"
 	"github.com/writeas/impart"
 	"net/http"
+	"strings"
 )
 
 type wfResolver struct {
@@ -13,17 +14,22 @@ type wfResolver struct {
 var wfUserNotFoundErr = impart.HTTPError{http.StatusNotFound, "User not found."}
 
 func (wfr wfResolver) FindUser(username string, host, requestHost string, r []webfinger.Rel) (*webfinger.Resource, error) {
-	if username != defaultUser {
-		return nil, impart.HTTPError{http.StatusNotFound, "User not found."}
+	realHost := wfr.app.cfg.host[strings.LastIndexByte(wfr.app.cfg.host, '/')+1:]
+	if host != realHost {
+		return nil, impart.HTTPError{http.StatusBadRequest, "Host doesn't match"}
+	}
+
+	u, err := wfr.app.getLocalUser(username)
+	if err != nil {
+		return nil, err
 	}
 
 	profileURL := wfr.app.cfg.host + "/" + username
-	actorURL := wfr.app.cfg.host + "/api/collections/" + username
 	res := webfinger.Resource{
 		Subject: "acct:" + username + "@" + host,
 		Aliases: []string{
 			profileURL,
-			actorURL,
+			u.AccountRoot(wfr.app),
 		},
 		Links: []webfinger.Link{
 			{
@@ -32,7 +38,7 @@ func (wfr wfResolver) FindUser(username string, host, requestHost string, r []we
 				Rel:  "https://webfinger.net/rel/profile-page",
 			},
 			{
-				HRef: actorURL,
+				HRef: u.AccountRoot(wfr.app),
 				Type: "application/activity+json",
 				Rel:  "self",
 			},
