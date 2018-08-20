@@ -7,7 +7,6 @@ import (
 	"github.com/writeas/impart"
 	"github.com/writeas/web-core/activitypub"
 	"github.com/writeas/web-core/activitystreams"
-	"github.com/writeas/web-core/auth"
 	"net/http"
 	"os"
 
@@ -16,8 +15,6 @@ import (
 
 const (
 	mySQLErrDuplicateKey = 1062
-	defaultUser          = "admin"
-	defaultPass          = "hunter2"
 )
 
 func initDatabase(app *app) error {
@@ -31,23 +28,16 @@ func initDatabase(app *app) error {
 		return err
 	}
 
-	// Create default user
+	return nil
+}
+
+func checkData(app *app) error {
 	users, err := app.getUsersCount()
 	if err != nil {
-		return err
+		return fmt.Errorf("Unable to get users count: %v", err)
 	}
 	if users == 0 {
-		logInfo("Creating new user: %s pass: %s", defaultUser, defaultPass)
-		hashedPass, err := auth.HashPass([]byte(defaultPass))
-		if err != nil {
-			return err
-		}
-		app.createUser(&LocalUser{
-			PreferredUsername: defaultUser,
-			HashedPass:        hashedPass,
-			Name:              "Admin",
-			Summary:           "It's just me right now.",
-		})
+		return fmt.Errorf("No users exist. Create one with: readas --user [username] --pass [password]")
 	}
 
 	return nil
