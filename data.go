@@ -57,8 +57,8 @@ func (app *app) addUser(u *activitystreams.Person) (int64, error) {
 		return 0, err
 	}
 
-	stmt := "INSERT INTO users (actor_id, username, type, name, summary, following_iri, followers_iri, inbox_iri, outbox_iri, shared_inbox_iri, avatar, avatar_type) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
-	res, err := t.Exec(stmt, u.ID, u.PreferredUsername, u.Type, u.Name, u.Summary, u.Following, u.Followers, u.Inbox, u.Outbox, u.Endpoints.SharedInbox, u.Icon.URL, u.Icon.Type)
+	stmt := "INSERT INTO users (actor_id, username, type, name, summary, url, following_iri, followers_iri, inbox_iri, outbox_iri, shared_inbox_iri, avatar, avatar_type) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
+	res, err := t.Exec(stmt, u.ID, u.PreferredUsername, u.Type, u.Name, u.Summary, u.URL, u.Following, u.Followers, u.Inbox, u.Outbox, u.Endpoints.SharedInbox, u.Icon.URL, u.Icon.Type)
 	if err != nil {
 		t.Rollback()
 		return 0, err
@@ -132,8 +132,8 @@ func (app *app) getActor(id string) (*User, error) {
 func (app *app) getUserBy(condition string, value interface{}) (*User, error) {
 	u := User{}
 
-	stmt := "SELECT id, actor_id, username, type, name, summary, following_iri, followers_iri, inbox_iri, outbox_iri, shared_inbox_iri, avatar, avatar_type FROM users WHERE " + condition
-	err := app.db.QueryRow(stmt, value).Scan(&u.ID, &u.BaseObject.ID, &u.PreferredUsername, &u.Type, &u.Name, &u.Summary, &u.Following, &u.Followers, &u.Inbox, &u.Outbox, &u.Endpoints.SharedInbox, &u.Icon.URL, &u.Icon.Type)
+	stmt := "SELECT id, actor_id, username, type, name, summary, url, following_iri, followers_iri, inbox_iri, outbox_iri, shared_inbox_iri, avatar, avatar_type FROM users WHERE " + condition
+	err := app.db.QueryRow(stmt, value).Scan(&u.ID, &u.BaseObject.ID, &u.PreferredUsername, &u.Type, &u.Name, &u.Summary, &u.URL, &u.Following, &u.Followers, &u.Inbox, &u.Outbox, &u.Endpoints.SharedInbox, &u.Icon.URL, &u.Icon.Type)
 	switch {
 	case err == sql.ErrNoRows:
 		return nil, impart.HTTPError{http.StatusNotFound, "User not found"}
