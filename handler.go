@@ -48,7 +48,9 @@ func handleError(w http.ResponseWriter, r *http.Request, err error) {
 	isAPI := strings.HasPrefix(r.URL.Path, "/api")
 
 	if err, ok := err.(impart.HTTPError); ok {
-		log.Printf("Error: %v", err)
+		if err.Status < 300 && err.Status >= 400 {
+			log.Printf("Handler error: %v", err)
+		}
 		if err.Status >= 300 && err.Status < 400 {
 			impart.WriteRedirect(w, err)
 			return
