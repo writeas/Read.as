@@ -1,0 +1,103 @@
+@themeColor: #1FBF99; /*#1AA887;*/
+@buttonsColor: #2FD6AF;
+@serifFont: Georgia, serif;
+@sansFont: Verdana, 'Segoe UI', Tahoma, sans-serif;
+@monoFont: Hack, consolas, Menlo-Regular, Menlo, Monaco, 'ubuntu mono', monospace, monospace;
+@textColor: rgba(0, 0, 0, 0.87);
+@horizMargin: 2em;
+
+html {
+	font-size: 100%;
+	font-family: @sansFont;
+	margin: 0;
+	padding: 0;
+}
+
+body {
+	line-height: 1.0;
+	word-wrap: break-word;
+	&#nouser {
+		background-color: #F7F7F7;
+		#content {
+			text-align: center;
+		}
+	}
+}
+
+a {
+	text-decoration: underline;
+}
+
+ul {
+	list-style: none;
+}
+
+code {
+	background-color: #f8f8f8;
+	border: 1px solid #ccc;
+	padding: 0.2em 0.4em;
+	font-size: 0.86em;
+	.rounded(.25em);
+}
+
+h1, h2, h3, p {
+	color: @textColor;
+	font-family: @sansFont;
+	line-height: 1.4;
+}
+
+footer, p {
+	font-family: @serifFont;
+}
+
+h2 {
+	color: @themeColor;
+	font-size: 1.25em;
+	line-height: 1.375;
+	text-align: inherit;
+}
+
+body > header {
+	margin: 1em @horizMargin;
+
+	h1 {
+		text-align: center;
+	}
+}
+
+footer {
+	text-align: center;
+	margin: 4em @horizMargin;
+
+	a {
+		color: @textColor;
+	}
+	a + a, a + span, span + a {
+		margin-left: 0.5em;
+	}
+	img {
+		height: 0.75em;
+	}
+}
+
+#wrapper {
+	margin: 2em auto;
+	max-width: 40em;
+}
+
+#content {
+	font-size: 1.2em;
+}
+
+@media (max-width: 1680px) {
+}
+@media (max-width: 1280px) {
+}
+@media (max-width: 980px) {
+}
+@media (max-width: 736px) {
+}
+@media (max-width: 480px) {
+}
+@media (max-width: 360px) {
+}
