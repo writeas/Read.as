@@ -4,7 +4,9 @@ import (
 	"github.com/writeas/impart"
 	"log"
 	"net/http"
+	"runtime/debug"
 	"strings"
+	"time"
 )
 
 type handlerFunc func(app *app, w http.ResponseWriter, r *http.Request) error
@@ -12,7 +14,28 @@ type handlerFunc func(app *app, w http.ResponseWriter, r *http.Request) error
 func (app *app) handler(h handlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		handleError(w, r, func() error {
-			return h(app, w, r)
+			var status int
+			start := time.Now()
+
+			defer func() {
+				if e := recover(); e != nil {
+					logError("%s: %s", e, debug.Stack())
+					status = http.StatusInternalServerError
+				}
+
+				logInfo("\"%s %s\" %d %s \"%s\" \"%s\"", r.Method, r.RequestURI, status, time.Since(start), r.UserAgent(), r.Host)
+			}()
+
+			err := h(app, w, r)
+			if err == nil {
+				status = http.StatusOK
+			} else if err, ok := err.(impart.HTTPError); ok {
+				status = err.Status
+			} else {
+				status = http.StatusInternalServerError
+			}
+
+			return err
 		}())
 	}
 }
