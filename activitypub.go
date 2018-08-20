@@ -310,6 +310,12 @@ func handleFetchInbox(app *app, w http.ResponseWriter, r *http.Request) error {
 }
 
 func handleFollowUser(app *app, w http.ResponseWriter, r *http.Request) error {
+	// Get logged-in user
+	cu := getUserSession(app, r)
+	if cu == nil {
+		return impart.HTTPError{http.StatusUnauthorized, "Not logged in."}
+	}
+
 	handle := r.FormValue("user")
 	// Make webfinger request
 	userItems := strings.Split(handle, "@")
@@ -345,7 +351,7 @@ func handleFollowUser(app *app, w http.ResponseWriter, r *http.Request) error {
 	}
 
 	// Send follow request
-	u, err := app.getLocalUser(defaultUser)
+	u, err := app.getLocalUser(cu.PreferredUsername)
 	if err != nil {
 		return err
 	}
