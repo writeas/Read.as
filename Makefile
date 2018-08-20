@@ -4,6 +4,7 @@ export GOPATH
 build: ui
 
 install: build-go
+	./keys.sh
 	cd less/; $(MAKE) install $(MFLAGS)
 
 ui: 
