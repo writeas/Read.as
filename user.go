@@ -106,3 +106,33 @@ func handleLogin(app *app, w http.ResponseWriter, r *http.Request) error {
 	}
 	return impart.HTTPError{http.StatusFound, to}
 }
+
+func handleLogout(app *app, w http.ResponseWriter, r *http.Request) error {
+	session, err := app.sStore.Get(r, "u")
+	if err != nil {
+		return err
+	}
+
+	val := session.Values["user"]
+	if _, ok := val.(*LocalUser); !ok {
+		logError("Error casting user object on logout. Vals: %+v Resetting cookie.", session.Values)
+
+		err = session.Save(r, w)
+		if err != nil {
+			logError("Couldn't save session on logout: %v", err)
+			return impart.HTTPError{http.StatusInternalServerError, "Unable to save cookie session."}
+		}
+
+		return impart.HTTPError{http.StatusFound, "/"}
+	}
+
+	session.Options.MaxAge = -1
+
+	err = session.Save(r, w)
+	if err != nil {
+		logError("Couldn't save session on logout: %v", err)
+		return impart.HTTPError{http.StatusInternalServerError, "Unable to save cookie session."}
+	}
+
+	return impart.HTTPError{http.StatusFound, "/"}
+}

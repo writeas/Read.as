@@ -35,6 +35,7 @@ func initRoutes(app *app) {
 
 	api.HandleFunc("/follow", app.handler(handleFollowUser))
 
+	app.router.HandleFunc("/logout", app.handler(handleLogout))
 	app.router.HandleFunc("/", app.handler(handleViewHome))
 	app.router.PathPrefix("/").Handler(http.FileServer(http.Dir("static/")))
 }
