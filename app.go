@@ -55,6 +55,12 @@ func Serve() {
 	if err != nil {
 		log.Fatal(err)
 	}
+
+	err = initKeys(app)
+	if err != nil {
+		log.Fatal(err)
+	}
+	initSession(app)
 	initRoutes(app)
 
 	http.Handle("/", app.router)
