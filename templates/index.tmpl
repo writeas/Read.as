@@ -1,0 +1,32 @@
+{{define "index"}}<!DOCTYPE HTML>
+	<html>
+	<head>
+		<meta charset="utf-8">
+		<title>Read.as</title>
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    </head>
+	<body {{if not .User}}id="nouser"{{end}}>
+		<header>
+			<h1><img src="/img/readas.svg" alt="read.as" /></h1>
+		</header>
+		<div id="wrapper">
+			<div id="content">
+				{{if not .User}}
+					{{if .Flash}}<p class="errors">{{.Flash}}</p>{{end}}
+
+					<form action="/api/auth/login" method="post">
+						<input type="text" name="username" placeholder="Username" value="{{.Username}}" {{if not .Username}}autofocus{{end}} /><br />
+						<input type="password" name="password" placeholder="Password" {{if .Username}}autofocus{{end}} /><br />
+						{{if .To}}<input type="hidden" name="to" value="{{.To}}" />{{end}}
+						<input type="submit" id="btn-login" value="Login" />
+					</form>
+				{{else}}
+					Your feed!
+				{{end}}
+			</div>
+			{{template "footer" .}}
+		</div>
+		{{template "pre-end-body" .}}
+	</body>
+</html>
+{{end}}

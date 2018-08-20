@@ -34,4 +34,35 @@ func initRoutes(app *app) {
 	collectionsAPI.HandleFunc("/followers", app.handler(handleFetchFollowers)).Methods("GET")
 
 	api.HandleFunc("/follow", app.handler(handleFollowUser))
+
+	app.router.HandleFunc("/", app.handler(handleViewHome))
+	app.router.PathPrefix("/").Handler(http.FileServer(http.Dir("static/")))
+}
+
+func handleViewHome(app *app, w http.ResponseWriter, r *http.Request) error {
+	cu := getUserSession(app, r)
+	var u *LocalUser
+	var err error
+	if cu != nil {
+		u, err = app.getLocalUser(cu.PreferredUsername)
+		if err != nil {
+			return err
+		}
+	}
+
+	p := struct {
+		User     *LocalUser
+		Username string
+		Flash    string
+		To       string
+	}{
+		User:     u,
+		Username: r.FormValue("username"),
+		To:       r.FormValue("to"),
+	}
+
+	if err := renderTemplate(w, "index", p); err != nil {
+		return err
+	}
+	return nil
 }
