@@ -24,6 +24,7 @@ func initRoutes(app *app) {
 	app.router.HandleFunc(niCfg.InfoURL, http.HandlerFunc(ni.NodeInfo))
 
 	api := app.router.PathPrefix("/api/").Subrouter()
+	api.HandleFunc("/auth/login", app.handler(handleLogin)).Methods("POST")
 	api.HandleFunc("/collections/{alias}", app.handler(handleFetchUser)).Methods("GET")
 	collectionsAPI := api.PathPrefix("/collections/{alias}").Subrouter()
 	collectionsAPI.HandleFunc("/", app.handler(handleFetchUser)).Methods("GET")

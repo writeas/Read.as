@@ -1,7 +1,10 @@
 package readas
 
 import (
+	"github.com/writeas/impart"
 	"github.com/writeas/web-core/activitystreams"
+	"github.com/writeas/web-core/auth"
+	"net/http"
 )
 
 // User is a remote user
@@ -51,4 +54,55 @@ func (u *LocalUser) AsPerson(app *app) *activitystreams.Person {
 
 func (u *LocalUser) AccountRoot(app *app) string {
 	return app.cfg.host + "/api/collections/" + u.PreferredUsername
+}
+
+func (u *LocalUser) cookie() LocalUser {
+	return LocalUser{
+		ID:                u.ID,
+		PreferredUsername: u.PreferredUsername,
+	}
+}
+
+func handleLogin(app *app, w http.ResponseWriter, r *http.Request) error {
+	username := r.FormValue("username")
+	password := r.FormValue("password")
+
+	if username == "" {
+		msg := "A username is required."
+		return impart.HTTPError{http.StatusBadRequest, msg}
+	}
+	if password == "" {
+		msg := "A password is required."
+		return impart.HTTPError{http.StatusBadRequest, msg}
+	}
+
+	to := "/"
+	authUser, err := app.getLocalUser(username)
+	if err != nil {
+		return err
+	}
+
+	if !auth.Authenticated(authUser.HashedPass, []byte(password)) {
+		return impart.HTTPError{http.StatusUnauthorized, "Incorrect password."}
+	}
+
+	// Set cookie
+	session, err := app.sStore.Get(r, "u")
+	if err != nil {
+		// The cookie should still save, even if there's an error.
+		logError("Login: Session: %v; ignoring", err)
+	}
+
+	// Remove unwanted data
+	session.Values["user"] = authUser.cookie()
+	err = session.Save(r, w)
+	if err != nil {
+		logError("Login: Couldn't save session: %v", err)
+		// TODO: return error
+	}
+
+	if redir := r.FormValue("to"); redir != "" {
+		to = redir
+	}
+	return impart.HTTPError{http.StatusFound, to}
 }
