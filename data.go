@@ -194,3 +194,22 @@ func (app *app) getUserFeed(id int64, page int) (*[]Post, error) {
 
 	return &posts, nil
 }
+
+func (app *app) getPost(id int64) (*Post, error) {
+	p := Post{
+		Owner: &User{},
+	}
+	stmt := `SELECT p.id, owner_id, activity_id, p.type, published, p.url, p.name, content, username, u.name, u.url
+		FROM posts p
+		INNER JOIN users u
+			ON owner_id = u.id
+		WHERE p.id = ?`
+	err := app.db.QueryRow(stmt, id).Scan(&p.ID, &p.OwnerID, &p.ActivityID, &p.Type, &p.Published, &p.URL, &p.Name, &p.Content, &p.Owner.PreferredUsername, &p.Owner.Name, &p.Owner.URL)
+	switch {
+	case err == sql.ErrNoRows:
+		return nil, impart.HTTPError{http.StatusNotFound, "Post not found"}
+	case err != nil:
+		return nil, err
+	}
+	return &p, err
+}

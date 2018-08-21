@@ -12,6 +12,7 @@ var templates = map[string]*template.Template{}
 const templatesDir = "templates/"
 
 func init() {
+	initTemplate("post")
 	initTemplate("index")
 }
 

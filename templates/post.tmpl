@@ -1,0 +1,30 @@
+{{define "post"}}<!DOCTYPE HTML>
+	<html>
+	<head>
+		<meta charset="utf-8">
+		<title>{{.Post.Name}} &mdash; Read.as</title>
+		<link rel="stylesheet" type="text/css" href="/css/main.css" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+	</head>
+	<body {{if not .User}}id="nouser"{{end}}>
+		<header>
+			<h1><a href="/"><img src="/img/readas.svg" alt="read.as" /></a></h1>
+		</header>
+		<div id="wrapper">
+			<div id="content">
+				<article>
+					{{if .Post.Name}}
+						<h1>{{.Post.Name}}</h1>
+						<p class="author">by <a href="{{.Post.Owner.URL}}">{{.Post.Owner.Name}}</a></p>
+					{{else}}
+						<h1>A post by <a href="{{.Post.Owner.URL}}">{{.Post.Owner.Name}}</a></h1>
+					{{end}}
+					<div class="e-content preview">{{.Post.SanitaryContent}}<div class="over">&nbsp;</div></div>
+				</article>
+			</div>
+			{{template "footer" .}}
+		</div>
+		{{template "pre-end-body" .}}
+	</body>
+</html>
+{{end}}

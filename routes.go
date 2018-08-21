@@ -37,6 +37,7 @@ func initRoutes(app *app) {
 	api.HandleFunc("/inbox", app.handler(handleFetchInbox))
 
 	app.router.HandleFunc("/logout", app.handler(handleLogout))
+	app.router.HandleFunc("/p/{id}", app.handler(handleViewPost))
 	app.router.HandleFunc("/", app.handler(handleViewHome))
 	app.router.PathPrefix("/").Handler(http.FileServer(http.Dir("static/")))
 }

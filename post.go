@@ -1,8 +1,11 @@
 package readas
 
 import (
+	"github.com/gorilla/mux"
 	"github.com/microcosm-cc/bluemonday"
 	"html/template"
+	"net/http"
+	"strconv"
 	"time"
 )
 
@@ -38,4 +41,36 @@ func getSanitizationPolicy() *bluemonday.Policy {
 	policy.AllowAttrs("style", "class", "id").Globally()
 	policy.AllowURLSchemes("http", "https", "mailto", "xmpp")
 	return policy
+}
+
+func handleViewPost(app *app, w http.ResponseWriter, r *http.Request) error {
+	vars := mux.Vars(r)
+	idStr := vars["id"]
+	id, err := strconv.Atoi(idStr)
+	if err != nil {
+		return err
+	}
+
+	cu := getUserSession(app, r)
+	var u *LocalUser
+	if cu != nil {
+		u, err = app.getLocalUser(cu.PreferredUsername)
+		if err != nil {
+			return err
+		}
+	}
+
+	p := struct {
+		User    *LocalUser
+		Post    *Post
+	}{
+		User:    u,
+		Post:    &Post{},
+	}
+	p.Post, err = app.getPost(int64(id))
+	if err != nil {
+		return err
+	}
+
+	return renderTemplate(w, "post", p)
 }
