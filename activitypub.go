@@ -285,6 +285,50 @@ func handleFetchInbox(app *app, w http.ResponseWriter, r *http.Request) error {
 
 			return impart.RenderActivityJSON(w, nil, http.StatusAccepted)
 		},
+		UpdateCallback: func(f *streams.Update) error {
+			isCreate = true
+
+			_, id := f.GetId()
+			_, actorIRI := f.GetActor(0)
+			var name, content string
+			var url *url.URL
+			artRes := &streams.Resolver{
+				ArticleCallback: func(a *streams.Article) error {
+					_, url = a.GetUrl(0)
+					_, name = a.GetName(0)
+					_, content = a.GetContent(0)
+					return nil
+				},
+				NoteCallback: func(a *streams.Note) error {
+					_, url = a.GetUrl(0)
+					_, name = a.GetName(0)
+					_, content = a.GetContent(0)
+					return nil
+				},
+			}
+			_, err = f.ResolveObject(artRes, 0)
+			if err != nil {
+				return err
+			}
+			// FIXME: this won't work if the user doesn't exist locally
+			fullActor, remoteUser, err = fetchActor(app, actorIRI.String())
+			if err != nil {
+				return err
+			}
+
+			// Update post
+			err = app.updatePost(&Post{
+				ActivityID: id.String(),
+				URL:        url.String(),
+				Name:       name,
+				Content:    content,
+			})
+			if err != nil {
+				return err
+			}
+
+			return impart.RenderActivityJSON(w, nil, http.StatusAccepted)
+		},
 	}
 	if err := res.Deserialize(m); err != nil {
 		// 3) Any errors from #2 can be handled, or the payload is an unknown type.

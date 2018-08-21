@@ -149,6 +149,11 @@ func (app *app) createPost(p *Post) error {
 	return err
 }
 
+func (app *app) updatePost(p *Post) error {
+	_, err := app.db.Exec("UPDATE posts SET url = ?, name = ?, content = ? WHERE activity_id = ?", p.URL, p.Name, p.Content, p.ActivityID)
+	return err
+}
+
 func (app *app) getUserFeed(id int64, page int) (*[]Post, error) {
 	pagePosts := 10
 	start := page*pagePosts - pagePosts
