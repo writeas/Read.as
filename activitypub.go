@@ -165,7 +165,7 @@ func handleFetchInbox(app *app, w http.ResponseWriter, r *http.Request) error {
 
 	a := streams.NewAccept()
 	var to *url.URL
-	var isFollow, isUnfollow, isAccept bool
+	var isFollow, isUnfollow, isAccept, isCreate bool
 	fullActor := &activitystreams.Person{}
 	var remoteUser *User
 
@@ -234,6 +234,57 @@ func handleFetchInbox(app *app, w http.ResponseWriter, r *http.Request) error {
 			fullActor, remoteUser, err = fetchActor(app, actorIRI.String())
 			return impart.RenderActivityJSON(w, nil, http.StatusAccepted)
 		},
+		CreateCallback: func(f *streams.Create) error {
+			isCreate = true
+
+			_, id := f.GetId()
+			_, published := f.GetPublished()
+			_, actorIRI := f.GetActor(0)
+			var postType, name, content string
+			var url *url.URL
+			artRes := &streams.Resolver{
+				ArticleCallback: func(a *streams.Article) error {
+					_, postType = a.GetType(0)
+					_, url = a.GetUrl(0)
+					_, name = a.GetName(0)
+					_, content = a.GetContent(0)
+					return nil
+				},
+				NoteCallback: func(a *streams.Note) error {
+					_, postType = a.GetType(0)
+					_, url = a.GetUrl(0)
+					_, name = a.GetName(0)
+					_, content = a.GetContent(0)
+					return nil
+				},
+			}
+			_, err = f.ResolveObject(artRes, 0)
+			if err != nil {
+				return err
+			}
+			// FIXME: this won't work if the user doesn't exist locally
+			fullActor, remoteUser, err = fetchActor(app, actorIRI.String())
+			if err != nil {
+				return err
+			}
+
+			// Insert post
+			err = app.createPost(&Post{
+				ActivityID: id.String(),
+				Type:       postType,
+				Published:  published,
+				URL:        url.String(),
+				Name:       name,
+				Content:    content,
+				OwnerID:    remoteUser.ID,
+				actorID:    actorIRI.String(),
+			})
+			if err != nil {
+				return err
+			}
+
+			return impart.RenderActivityJSON(w, nil, http.StatusAccepted)
+		},
 	}
 	if err := res.Deserialize(m); err != nil {
 		// 3) Any errors from #2 can be handled, or the payload is an unknown type.
@@ -255,6 +306,8 @@ func handleFetchInbox(app *app, w http.ResponseWriter, r *http.Request) error {
 				return err
 			}
 		}
+	} else if isCreate {
+		return nil
 	}
 
 	p := u.AsPerson(app)
