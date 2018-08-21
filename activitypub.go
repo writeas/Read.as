@@ -329,6 +329,19 @@ func handleFetchInbox(app *app, w http.ResponseWriter, r *http.Request) error {
 
 			return impart.RenderActivityJSON(w, nil, http.StatusAccepted)
 		},
+		DeleteCallback: func(f *streams.Delete) error {
+			isCreate = true
+
+			_, id := f.GetId()
+
+			// Delete post
+			err = app.deletePost(id.String())
+			if err != nil {
+				return err
+			}
+
+			return impart.RenderActivityJSON(w, nil, http.StatusAccepted)
+		},
 	}
 	if err := res.Deserialize(m); err != nil {
 		// 3) Any errors from #2 can be handled, or the payload is an unknown type.

@@ -154,6 +154,11 @@ func (app *app) updatePost(p *Post) error {
 	return err
 }
 
+func (app *app) deletePost(postID string) error {
+	_, err := app.db.Exec("DELETE FROM posts WHERE activity_id = ?", postID)
+	return err
+}
+
 func (app *app) getUserFeed(id int64, page int) (*[]Post, error) {
 	pagePosts := 10
 	start := page*pagePosts - pagePosts
