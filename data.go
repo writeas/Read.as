@@ -143,3 +143,54 @@ func (app *app) getUserBy(condition string, value interface{}) (*User, error) {
 
 	return &u, nil
 }
+
+func (app *app) createPost(p *Post) error {
+	_, err := app.db.Exec("INSERT INTO posts (owner_id, activity_id, type, published, url, name, content) VALUES ((SELECT id FROM users WHERE actor_id = ?), ?, ?, ?, ?, ?, ?)", p.actorID, p.ActivityID, p.Type, p.Published, p.URL, p.Name, p.Content)
+	return err
+}
+
+func (app *app) getUserFeed(id int64, page int) (*[]Post, error) {
+	pagePosts := 10
+	start := page*pagePosts - pagePosts
+	if page == 0 {
+		start = 0
+		pagePosts = 100
+	}
+
+	limitStr := ""
+	if page > 0 {
+		limitStr = fmt.Sprintf(" LIMIT %d, %d", start, pagePosts)
+	}
+	rows, err := app.db.Query(`SELECT p.id, owner_id, activity_id, p.type, published, p.url, p.name, content, username, u.name, u.url
+		FROM posts p
+		INNER JOIN users u
+			ON owner_id = u.id
+		WHERE owner_id 
+			IN (SELECT followee FROM follows WHERE follower = ?)
+		ORDER BY published DESC `+limitStr, id)
+	if err != nil {
+		logError("Failed selecting from posts: %v", err)
+		return nil, impart.HTTPError{http.StatusInternalServerError, "Couldn't retrieve user feed."}
+	}
+	defer rows.Close()
+
+	posts := []Post{}
+	for rows.Next() {
+		p := Post{
+			Owner: &User{},
+		}
+		err = rows.Scan(&p.ID, &p.OwnerID, &p.ActivityID, &p.Type, &p.Published, &p.URL, &p.Name, &p.Content, &p.Owner.PreferredUsername, &p.Owner.Name, &p.Owner.URL)
+		if err != nil {
+			logError("Failed scanning row: %v", err)
+			break
+		}
+
+		posts = append(posts, p)
+	}
+	err = rows.Err()
+	if err != nil {
+		logError("Error after Next() on rows: %v", err)
+	}
+
+	return &posts, nil
+}

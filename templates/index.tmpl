@@ -22,7 +22,21 @@
 						<input type="submit" id="btn-login" value="Login" />
 					</form>
 				{{else}}
-					Your feed!
+					{{if gt (len .Posts) 0}}
+						<div id="feed">
+						{{range .Posts}}<article>
+							{{if .Name}}
+								<h1><a href="/p/{{.ID}}">{{.Name}}</a></h1>
+								<p class="author">by <a href="{{.Owner.URL}}">{{.Owner.Name}}</a></p>
+							{{else}}
+								<h1><a href="/p/{{.ID}}">A post</a> by <a href="{{.Owner.URL}}">{{.Owner.Name}}</a></h1>
+							{{end}}
+							{{.SanitaryContent}}
+						</article>{{end}}
+						</div>
+					{{else}}
+						<p>No posts here yet! Follow someone: <code>/api/follow?user=blog@write.as</code></p>
+					{{end}}
 				{{end}}
 			</div>
 			{{template "footer" .}}

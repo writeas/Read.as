@@ -57,10 +57,18 @@ func handleViewHome(app *app, w http.ResponseWriter, r *http.Request) error {
 		Username string
 		Flash    string
 		To       string
+		Posts    *[]Post
 	}{
 		User:     u,
 		Username: r.FormValue("username"),
 		To:       r.FormValue("to"),
+		Posts:    &[]Post{},
+	}
+	if u != nil {
+		p.Posts, err = app.getUserFeed(u.ID, 1)
+		if err != nil {
+			return err
+		}
 	}
 
 	if err := renderTemplate(w, "index", p); err != nil {

@@ -89,6 +89,33 @@ footer {
 	font-size: 1.2em;
 }
 
+#feed {
+	a:link, a:visited {
+		color: @textColor;
+		text-decoration: none;
+	}
+	a:hover {
+		text-decoration: underline;
+	}
+	h1 {
+		margin-bottom: 0.5rem;
+	}
+	.author {
+		font-family: @sansFont;
+		margin: 0.5em 0;
+		color: lighten(@textColor, 40%);
+		a {
+			font-weight: bold;
+			color: lighten(@textColor, 20%);
+		}
+	}
+	article {
+		&+ article {
+			margin-top: 3em;
+		}
+	}
+}
+
 @media (max-width: 1680px) {
 }
 @media (max-width: 1280px) {
