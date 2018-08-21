@@ -34,6 +34,7 @@ func initRoutes(app *app) {
 	collectionsAPI.HandleFunc("/followers", app.handler(handleFetchFollowers)).Methods("GET")
 
 	api.HandleFunc("/follow", app.handler(handleFollowUser))
+	api.HandleFunc("/inbox", app.handler(handleFetchInbox))
 
 	app.router.HandleFunc("/logout", app.handler(handleLogout))
 	app.router.HandleFunc("/", app.handler(handleViewHome))

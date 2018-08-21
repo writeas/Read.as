@@ -141,10 +141,14 @@ func handleFetchInbox(app *app, w http.ResponseWriter, r *http.Request) error {
 
 	vars := mux.Vars(r)
 	alias := vars["alias"]
-	u, err := app.getLocalUser(alias)
-	if err != nil {
-		// TODO: return Reject?
-		return err
+	var u *LocalUser
+	var err error
+	if alias != "" {
+		u, err = app.getLocalUser(alias)
+		if err != nil {
+			// TODO: return Reject?
+			return err
+		}
 	}
 
 	dump, err := httputil.DumpRequest(r, true)
@@ -160,7 +164,6 @@ func handleFetchInbox(app *app, w http.ResponseWriter, r *http.Request) error {
 	}
 
 	a := streams.NewAccept()
-	p := u.AsPerson(app)
 	var to *url.URL
 	var isFollow, isUnfollow, isAccept bool
 	fullActor := &activitystreams.Person{}
@@ -254,6 +257,7 @@ func handleFetchInbox(app *app, w http.ResponseWriter, r *http.Request) error {
 		}
 	}
 
+	p := u.AsPerson(app)
 	go func() {
 		time.Sleep(2 * time.Second)
 		am, err := a.Serialize()
