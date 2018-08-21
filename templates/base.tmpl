@@ -4,8 +4,9 @@
 
 {{define "footer"}}
 <footer>
-	<a href="https://read.as"><img src="/img/readas.svg" alt="read.as" /></a>
-	<a href="https://github.com/writeas/Read.as">Source code</a>
+	<a href="https://read.as" target="read"><img src="/img/readas.svg" alt="read.as" /></a>
+	<a href="https://github.com/writeas/Read.as" target="source">Source code</a>
+	<span>v{{.Version}}</span>
 	{{if .User}}<a href="/logout">Log out</a>{{end}}
 </footer>
 {{end}}

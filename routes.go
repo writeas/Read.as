@@ -55,12 +55,14 @@ func handleViewHome(app *app, w http.ResponseWriter, r *http.Request) error {
 
 	p := struct {
 		User     *LocalUser
+		Version  string
 		Username string
 		Flash    string
 		To       string
 		Posts    *[]Post
 	}{
 		User:     u,
+		Version:  softwareVersion,
 		Username: r.FormValue("username"),
 		To:       r.FormValue("to"),
 		Posts:    &[]Post{},
