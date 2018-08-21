@@ -7,9 +7,7 @@
 		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
 	</head>
 	<body {{if not .User}}id="nouser"{{end}}>
-		<header>
-			<h1><a href="/"><img src="/img/readas.svg" alt="read.as" /></a></h1>
-		</header>
+		{{template "header" .}}
 		<div id="wrapper">
 			<div id="content">
 				<article>
