@@ -13,6 +13,36 @@ import (
 	"net/http/httputil"
 )
 
+var (
+	verifier *httpsig.Verifier
+)
+
+func initFederation(app *app) {
+	verifier = httpsig.NewSigHeaderVerifier(keyGetter{app})
+}
+
+type keyGetter struct {
+	app *app
+}
+
+func (kg keyGetter) GetKey(id string) interface{} {
+	k, err := kg.app.getActorKey(id)
+	if err != nil {
+		logError("Unable to get key: %v", err)
+		return nil
+	}
+	pubKey, err := activitypub.DecodePublicKey(k)
+	if err != nil {
+		logError("Unable to decode key: %v", err)
+		return err
+	}
+	return pubKey
+}
+
+func verifyRequest(app *app, r *http.Request) error {
+	return verifier.Verify(r)
+}
+
 func makeActivityPost(p *activitystreams.Person, url string, m interface{}) error {
 	logInfo("POST %s", url)
 	b, err := json.Marshal(m)

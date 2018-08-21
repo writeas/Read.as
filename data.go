@@ -223,3 +223,18 @@ func (app *app) getPost(id int64) (*Post, error) {
 	}
 	return &p, err
 }
+
+func (app *app) getActorKey(id string) ([]byte, error) {
+	k := []byte{}
+
+	stmt := "SELECT public_key FROM userkeys WHERE id = ?"
+	err := app.db.QueryRow(stmt, id).Scan(&k)
+	switch {
+	case err == sql.ErrNoRows:
+		return nil, impart.HTTPError{http.StatusNotFound, "Key not found"}
+	case err != nil:
+		return nil, err
+	}
+
+	return k, nil
+}

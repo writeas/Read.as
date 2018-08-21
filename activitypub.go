@@ -151,6 +151,13 @@ func handleFetchInbox(app *app, w http.ResponseWriter, r *http.Request) error {
 		}
 	}
 
+	err = verifyRequest(app, r)
+	if err != nil {
+		logError("Unable to verify signature: %v", err)
+		return err
+	}
+	logInfo("Signature OK")
+
 	dump, err := httputil.DumpRequest(r, true)
 	if err != nil {
 		logError("Can't dump: %v", err)

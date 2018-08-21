@@ -87,6 +87,7 @@ func Serve() {
 		log.Fatal(err)
 	}
 
+	initFederation(app)
 	err = initKeys(app)
 	if err != nil {
 		log.Fatal(err)
