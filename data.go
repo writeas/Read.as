@@ -218,10 +218,12 @@ func (app *app) getUserFeed(id int64, page int) (*[]Post, error) {
 	if page > 0 {
 		limitStr = fmt.Sprintf(" LIMIT %d, %d", start, pagePosts)
 	}
-	rows, err := app.db.Query(`SELECT p.id, owner_id, activity_id, p.type, published, p.url, p.name, content, username, u.name, u.url
+	rows, err := app.db.Query(`SELECT p.id, owner_id, activity_id, p.type, published, p.url, p.name, content, f.host, u.username, u.name, u.url
 		FROM posts p
 		INNER JOIN users u
 			ON owner_id = u.id
+		LEFT JOIN foundusers f
+			USING(actor_id)
 		WHERE owner_id 
 			IN (SELECT followee FROM follows WHERE follower = ?)
 		ORDER BY published DESC `+limitStr, id)
@@ -231,12 +233,13 @@ func (app *app) getUserFeed(id int64, page int) (*[]Post, error) {
 	}
 	defer rows.Close()
 
+	// TODO: extract this common row scanning logic for queries using `postCols`
 	posts := []Post{}
 	for rows.Next() {
 		p := Post{
 			Owner: &User{},
 		}
-		err = rows.Scan(&p.ID, &p.OwnerID, &p.ActivityID, &p.Type, &p.Published, &p.URL, &p.Name, &p.Content, &p.Owner.PreferredUsername, &p.Owner.Name, &p.Owner.URL)
+		err = rows.Scan(&p.ID, &p.OwnerID, &p.ActivityID, &p.Type, &p.Published, &p.URL, &p.Name, &p.Content, &p.Owner.Host, &p.Owner.PreferredUsername, &p.Owner.Name, &p.Owner.URL)
 		if err != nil {
 			logError("Failed scanning row: %v", err)
 			break
@@ -256,12 +259,14 @@ func (app *app) getPost(id int64) (*Post, error) {
 	p := Post{
 		Owner: &User{},
 	}
-	stmt := `SELECT p.id, owner_id, activity_id, p.type, published, p.url, p.name, content, username, u.name, u.url
+	stmt := `SELECT p.id, owner_id, activity_id, p.type, published, p.url, p.name, content, f.host, u.username, u.name, u.url
 		FROM posts p
 		INNER JOIN users u
 			ON owner_id = u.id
+		LEFT JOIN foundusers f
+			USING(actor_id)
 		WHERE p.id = ?`
-	err := app.db.QueryRow(stmt, id).Scan(&p.ID, &p.OwnerID, &p.ActivityID, &p.Type, &p.Published, &p.URL, &p.Name, &p.Content, &p.Owner.PreferredUsername, &p.Owner.Name, &p.Owner.URL)
+	err := app.db.QueryRow(stmt, id).Scan(&p.ID, &p.OwnerID, &p.ActivityID, &p.Type, &p.Published, &p.URL, &p.Name, &p.Content, &p.Owner.Host, &p.Owner.PreferredUsername, &p.Owner.Name, &p.Owner.URL)
 	switch {
 	case err == sql.ErrNoRows:
 		return nil, impart.HTTPError{http.StatusNotFound, "Post not found"}
