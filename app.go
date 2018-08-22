@@ -16,7 +16,7 @@ import (
 
 const (
 	serverName      = "Read.as"
-	softwareVersion = "0.1"
+	softwareVersion = "0.2"
 )
 
 var (
