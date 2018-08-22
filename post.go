@@ -31,6 +31,27 @@ func (p *Post) SanitaryContent() template.HTML {
 	return template.HTML(policy.Sanitize(p.Content))
 }
 
+func (p *Post) DisplayTitle() string {
+	t := "A post"
+	if p.Name != "" {
+		t = p.Name
+	}
+	return t + " by " + p.Owner.Name
+}
+
+func (p *Post) Summary() string {
+	// TODO: return truncated summary of post.
+	return ""
+}
+
+func (p *Post) PublishedDate() string {
+	return p.Published.Format("2006-01-02")
+}
+
+func (p *Post) Published8601() string {
+	return p.Published.Format("2006-01-02T15:04:05Z")
+}
+
 func getSanitizationPolicy() *bluemonday.Policy {
 	policy := bluemonday.UGCPolicy()
 	policy.AllowAttrs("src", "style").OnElements("iframe", "video")

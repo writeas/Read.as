@@ -5,6 +5,24 @@
 		<title>{{.Post.Name}} &mdash; Read.as</title>
 		<link rel="stylesheet" type="text/css" href="/css/main.css" />
 		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<link rel="canonical" href="{{.Post.URL}}" />
+
+		<meta name="title" content="{{.Post.DisplayTitle}}">
+		<meta name="description" content="{{.Post.Summary}}">
+		<link rel="author" href="{{.Post.Owner.URL}}" />
+		<meta name="author" content="{{.Post.Owner.URL}}" />
+		<meta itemprop="description" content="{{.Post.Summary}}">
+		<meta itemprop="datePublished" content="{{.Post.PublishedDate}}" />
+		<meta name="twitter:card" content="summary">
+		<meta name="twitter:description" content="{{.Post.Summary}}">
+		<meta name="twitter:title" content="{{.Post.DisplayTitle}}">
+		<meta property="og:title" content="{{.Post.DisplayTitle}}" />
+		<meta property="og:description" content="{{.Post.Summary}}" />
+		<meta property="og:site_name" content="Read.as" />
+		<meta property="og:type" content="article" />
+		<meta property="og:url" content="{{.Post.URL}}" />
+		<meta property="og:updated_time" content="{{.Post.Published8601}}" />
+		<meta property="article:published_time" content="{{.Post.Published8601}}">
 	</head>
 	<body {{if not .User}}id="nouser"{{end}}>
 		{{template "header" .}}
