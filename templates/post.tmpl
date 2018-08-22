@@ -28,15 +28,7 @@
 		{{template "header" .}}
 		<div id="wrapper">
 			<div id="content">
-				<article>
-					{{if .Post.Name}}
-						<h1>{{.Post.Name}}</h1>
-						<p class="author">by <a href="{{.Post.Owner.URL}}">{{.Post.Owner.Name}}</a></p>
-					{{else}}
-						<h1>A post by <a href="{{.Post.Owner.URL}}">{{.Post.Owner.Name}}</a></h1>
-					{{end}}
-					<div class="e-content preview">{{.Post.SanitaryContent}}<div class="over">&nbsp;</div></div>
-				</article>
+				{{template "article" .Post}}
 			</div>
 			{{template "footer" .}}
 		</div>

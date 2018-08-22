@@ -16,3 +16,15 @@
 	{{if .User}}<a href="/logout">Log out</a>{{end}}
 </footer>
 {{end}}
+
+{{define "article"}}
+<article>
+	{{if .Name}}
+		<h1><a href="/p/{{.ID}}">{{.Name}}</a></h1>
+		<p class="author">by <a href="{{.Owner.URL}}">{{.Owner.Name}}</a></p>
+	{{else}}
+		<h1><a href="/p/{{.ID}}">A post</a> by <a href="{{.Owner.URL}}">{{.Owner.Name}}</a></h1>
+	{{end}}
+	<div class="e-content preview">{{.SanitaryContent}}<div class="over">&nbsp;</div></div>
+</article>
+{{end}}

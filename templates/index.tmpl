@@ -22,15 +22,7 @@
 				{{else}}
 					{{if gt (len .Posts) 0}}
 						<div id="feed">
-						{{range .Posts}}<article>
-							{{if .Name}}
-								<h1><a href="/p/{{.ID}}">{{.Name}}</a></h1>
-								<p class="author">by <a href="{{.Owner.URL}}">{{.Owner.Name}}</a></p>
-							{{else}}
-								<h1><a href="/p/{{.ID}}">A post</a> by <a href="{{.Owner.URL}}">{{.Owner.Name}}</a></h1>
-							{{end}}
-							<div class="e-content preview">{{.SanitaryContent}}<div class="over">&nbsp;</div></div>
-						</article>{{end}}
+							{{range .Posts}}{{template "article" .}}{{end}}
 						</div>
 					{{else}}
 						<p>No posts here yet! Follow someone: <code>/api/follow?user=blog@write.as</code></p>
