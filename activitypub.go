@@ -82,17 +82,20 @@ func handleFetchFollowers(app *app, w http.ResponseWriter, r *http.Request) erro
 
 	accountRoot := u.AccountRoot(app)
 
-	/*
-		folls, err := app.getFollowers(u.ID)
-		if err != nil {
-			return err
-		}
-	*/
-	followersCount := 0 // len(*folls)
-
 	page := r.FormValue("page")
 	p, err := strconv.Atoi(page)
-	if err != nil || p < 1 {
+	if err != nil {
+		p = 0
+	}
+
+	// TODO: fetch full Users
+	folls, err := app.getFollowers(u.ID, p)
+	if err != nil {
+		return err
+	}
+	followersCount := len(*folls)
+
+	if p < 1 {
 		// Return outbox
 		oc := activitystreams.NewOrderedCollection(accountRoot, "followers", followersCount)
 		return impart.RenderActivityJSON(w, oc, http.StatusOK)
@@ -101,11 +104,9 @@ func handleFetchFollowers(app *app, w http.ResponseWriter, r *http.Request) erro
 	// Return outbox page
 	ocp := activitystreams.NewOrderedCollectionPage(accountRoot, "followers", followersCount, p)
 	ocp.OrderedItems = []interface{}{}
-	/*
-		for _, f := range *folls {
-			ocp.OrderedItems = append(ocp.OrderedItems, f.ID)
-		}
-	*/
+	for _, f := range *folls {
+		ocp.OrderedItems = append(ocp.OrderedItems, f)
+	}
 	return impart.RenderActivityJSON(w, ocp, http.StatusOK)
 }
 
@@ -124,15 +125,29 @@ func handleFetchFollowing(app *app, w http.ResponseWriter, r *http.Request) erro
 
 	page := r.FormValue("page")
 	p, err := strconv.Atoi(page)
-	if err != nil || p < 1 {
+	if err != nil {
+		p = 0
+	}
+
+	// TODO: fetch full Users
+	folls, err := app.getFollowing(u.ID, p)
+	if err != nil {
+		return err
+	}
+	followingCount := len(*folls)
+
+	if p < 1 {
 		// Return outbox
-		oc := activitystreams.NewOrderedCollection(accountRoot, "following", 0)
+		oc := activitystreams.NewOrderedCollection(accountRoot, "following", followingCount)
 		return impart.RenderActivityJSON(w, oc, http.StatusOK)
 	}
 
 	// Return outbox page
-	ocp := activitystreams.NewOrderedCollectionPage(accountRoot, "following", 0, p)
+	ocp := activitystreams.NewOrderedCollectionPage(accountRoot, "following", followingCount, p)
 	ocp.OrderedItems = []interface{}{}
+	for _, f := range *folls {
+		ocp.OrderedItems = append(ocp.OrderedItems, f)
+	}
 	return impart.RenderActivityJSON(w, ocp, http.StatusOK)
 }
 

@@ -157,6 +157,82 @@ func (app *app) getLocalUser(username string) (*LocalUser, error) {
 	return &u, nil
 }
 
+func (app *app) getFollowers(id int64, page int) (*[]string, error) {
+	limitStr := ""
+	if page > 0 {
+		pagePosts := 10
+		start := page*pagePosts - pagePosts
+		limitStr = fmt.Sprintf(" LIMIT %d, %d", start, pagePosts)
+	}
+
+	rows, err := app.db.Query(`SELECT actor_id
+		FROM follows
+		LEFT JOIN users
+			ON follower = id
+		WHERE followee = ?`+limitStr, id)
+	if err != nil {
+		logError("Failed selecting followers: %v", err)
+		return nil, impart.HTTPError{http.StatusInternalServerError, "Couldn't retrieve followers."}
+	}
+	defer rows.Close()
+
+	users := []string{}
+	for rows.Next() {
+		u := ""
+		err = rows.Scan(&u)
+		if err != nil {
+			logError("Failed scanning row in getFollowers: %v", err)
+			break
+		}
+
+		users = append(users, u)
+	}
+	err = rows.Err()
+	if err != nil {
+		logError("Error after Next() on rows in getFollowers: %v", err)
+	}
+
+	return &users, nil
+}
+
+func (app *app) getFollowing(id int64, page int) (*[]string, error) {
+	limitStr := ""
+	if page > 0 {
+		pagePosts := 10
+		start := page*pagePosts - pagePosts
+		limitStr = fmt.Sprintf(" LIMIT %d, %d", start, pagePosts)
+	}
+
+	rows, err := app.db.Query(`SELECT actor_id
+		FROM follows
+		LEFT JOIN users
+			ON followee = id
+		WHERE follower = ?`+limitStr, id)
+	if err != nil {
+		logError("Failed selecting following: %v", err)
+		return nil, impart.HTTPError{http.StatusInternalServerError, "Couldn't retrieve following."}
+	}
+	defer rows.Close()
+
+	users := []string{}
+	for rows.Next() {
+		u := ""
+		err = rows.Scan(&u)
+		if err != nil {
+			logError("Failed scanning row in getFollowing: %v", err)
+			break
+		}
+
+		users = append(users, u)
+	}
+	err = rows.Err()
+	if err != nil {
+		logError("Error after Next() on rows in getFollowing: %v", err)
+	}
+
+	return &users, nil
+}
+
 func (app *app) getUsersCount() (uint64, error) {
 	var c uint64
 	err := app.db.QueryRow("SELECT COUNT(*) FROM users WHERE password IS NOT NULL").Scan(&c)
