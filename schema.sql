@@ -10,20 +10,16 @@ CREATE TABLE IF NOT EXISTS `follows` (
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 --
--- Table structure for table `localusers`
+-- Table structure for table `foundusers`
 --
 
-CREATE TABLE IF NOT EXISTS `localusers` (
-  `id` int(11) NOT NULL AUTO_INCREMENT,
+CREATE TABLE IF NOT EXISTS `foundusers` (
   `username` varchar(60) NOT NULL,
-  `password` char(60) NOT NULL,
-  `name` varchar(100) NOT NULL,
-  `summary` varchar(255) NOT NULL,
-  `private_key` blob NOT NULL,
-  `public_key` blob NOT NULL,
-  `created` datetime NOT NULL,
-  PRIMARY KEY (`id`),
-  UNIQUE KEY `username` (`username`)
+  `host` varchar(63) NOT NULL,
+  `actor_id` varchar(255) NOT NULL,
+  `user_id` int(11) DEFAULT NULL,
+  PRIMARY KEY (`username`,`host`),
+  UNIQUE KEY `actor_iri` (`actor_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 --
@@ -63,18 +59,19 @@ CREATE TABLE IF NOT EXISTS `users` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `actor_id` varchar(255) NOT NULL,
   `username` varchar(60) NOT NULL,
-  `type` varchar(10) NOT NULL,
+  `password` char(60) DEFAULT NULL,
+  `type` varchar(10) DEFAULT NULL,
   `name` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL,
   `summary` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL,
-  `url` varchar(255) NOT NULL,
-  `following_iri` varchar(255) NOT NULL,
-  `followers_iri` varchar(255) NOT NULL,
-  `inbox_iri` varchar(255) NOT NULL,
-  `outbox_iri` varchar(255) NOT NULL,
-  `shared_inbox_iri` varchar(255) NOT NULL,
-  `avatar` varchar(255) NOT NULL,
-  `avatar_type` varchar(255) NOT NULL,
+  `created` datetime NOT NULL,
+  `url` varchar(255) DEFAULT NULL,
+  `following_iri` varchar(255) DEFAULT NULL,
+  `followers_iri` varchar(255) DEFAULT NULL,
+  `inbox_iri` varchar(255) DEFAULT NULL,
+  `outbox_iri` varchar(255) DEFAULT NULL,
+  `shared_inbox_iri` varchar(255) DEFAULT NULL,
+  `avatar` varchar(255) DEFAULT NULL,
+  `avatar_type` varchar(255) DEFAULT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `actor_id` (`actor_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
-

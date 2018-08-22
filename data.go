@@ -45,7 +45,42 @@ func checkData(app *app) error {
 
 func (app *app) createUser(u *LocalUser) error {
 	pub, priv := activitypub.GenerateKeys()
-	_, err := app.db.Exec("INSERT INTO localusers (username, password, name, summary, private_key, public_key, created) VALUES (?, ?, ?, ?, ?, ?, NOW())", u.PreferredUsername, u.HashedPass, u.Name, u.Summary, priv, pub)
+	t, err := app.db.Begin()
+	if err != nil {
+		logError("Unable to start transaction: %v", err)
+		return err
+	}
+
+	res, err := t.Exec("INSERT INTO users (actor_id, username, password, name, summary, created) VALUES (?, ?, ?, ?, ?, NOW())", u.PreferredUsername, u.PreferredUsername, u.HashedPass, u.Name, u.Summary)
+	if err != nil {
+		t.Rollback()
+		return err
+	}
+
+	userID, err := res.LastInsertId()
+	if err != nil {
+		t.Rollback()
+		return err
+	}
+
+	_, err = t.Exec("INSERT INTO userkeys (id, user_id, public_key, private_key) VALUES (?, ?, ?, ?)", u.PreferredUsername+"#main-key", userID, pub, priv)
+	if err != nil {
+		t.Rollback()
+		return err
+	}
+
+	err = t.Commit()
+	if err != nil {
+		t.Rollback()
+		logError("Rolling back after Commit(): %v\n", err)
+		return err
+	}
+	return nil
+}
+
+func (app *app) addFoundUser(wfr *WebfingerResult) error {
+	stmt := "INSERT INTO foundusers (username, host, actor_id) VALUES (?, ?, ?)"
+	_, err := app.db.Exec(stmt, wfr.Username, wfr.Host, wfr.ActorIRI)
 	return err
 }
 
@@ -57,8 +92,8 @@ func (app *app) addUser(u *activitystreams.Person) (int64, error) {
 		return 0, err
 	}
 
-	stmt := "INSERT INTO users (actor_id, username, type, name, summary, url, following_iri, followers_iri, inbox_iri, outbox_iri, shared_inbox_iri, avatar, avatar_type) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
-	res, err := t.Exec(stmt, u.ID, u.PreferredUsername, u.Type, u.Name, u.Summary, u.URL, u.Following, u.Followers, u.Inbox, u.Outbox, u.Endpoints.SharedInbox, u.Icon.URL, u.Icon.Type)
+	stmt := "INSERT INTO users (actor_id, username, type, name, summary, created, url, following_iri, followers_iri, inbox_iri, outbox_iri, shared_inbox_iri, avatar, avatar_type) VALUES (?, ?, ?, ?, ?, NOW(), ?, ?, ?, ?, ?, ?, ?, ?)"
+	res, err := t.Exec(stmt, u.BaseObject.ID, u.PreferredUsername, u.Type, u.Name, u.Summary, u.URL, u.Following, u.Followers, u.Inbox, u.Outbox, u.Endpoints.SharedInbox, u.Icon.URL, u.Icon.Type)
 	if err != nil {
 		t.Rollback()
 		return 0, err
@@ -87,6 +122,14 @@ func (app *app) addUser(u *activitystreams.Person) (int64, error) {
 		}
 	}
 
+	// Update found users
+	stmt = "UPDATE foundusers SET user_id = ? WHERE actor_id = ?"
+	_, err = t.Exec(stmt, followerID, u.BaseObject.ID)
+	if err != nil {
+		t.Rollback()
+		return 0, err
+	}
+
 	err = t.Commit()
 	if err != nil {
 		t.Rollback()
@@ -102,7 +145,7 @@ func (app *app) getLocalUser(username string) (*LocalUser, error) {
 
 	condition := "username = ?"
 	value := username
-	stmt := "SELECT id, username, password, name, summary, private_key, public_key FROM localusers WHERE " + condition
+	stmt := "SELECT u.id, username, password, name, summary, private_key, public_key FROM users u LEFT JOIN userkeys uk ON u.id = uk.user_id WHERE " + condition
 	err := app.db.QueryRow(stmt, value).Scan(&u.ID, &u.PreferredUsername, &u.HashedPass, &u.Name, &u.Summary, &u.privKey, &u.pubKey)
 	switch {
 	case err == sql.ErrNoRows:
@@ -116,7 +159,7 @@ func (app *app) getLocalUser(username string) (*LocalUser, error) {
 
 func (app *app) getUsersCount() (uint64, error) {
 	var c uint64
-	err := app.db.QueryRow("SELECT COUNT(*) FROM localusers").Scan(&c)
+	err := app.db.QueryRow("SELECT COUNT(*) FROM users WHERE password IS NOT NULL").Scan(&c)
 	if err != nil {
 		logError("Couldn't get users count: %v", err)
 		return 0, err
@@ -132,8 +175,12 @@ func (app *app) getActor(id string) (*User, error) {
 func (app *app) getUserBy(condition string, value interface{}) (*User, error) {
 	u := User{}
 
-	stmt := "SELECT id, actor_id, username, type, name, summary, url, following_iri, followers_iri, inbox_iri, outbox_iri, shared_inbox_iri, avatar, avatar_type FROM users WHERE " + condition
-	err := app.db.QueryRow(stmt, value).Scan(&u.ID, &u.BaseObject.ID, &u.PreferredUsername, &u.Type, &u.Name, &u.Summary, &u.URL, &u.Following, &u.Followers, &u.Inbox, &u.Outbox, &u.Endpoints.SharedInbox, &u.Icon.URL, &u.Icon.Type)
+	stmt := `SELECT id, actor_id, u.username, type, name, summary, created, url, following_iri, followers_iri, inbox_iri, outbox_iri, shared_inbox_iri, avatar, avatar_type, host
+		FROM users u
+			INNER JOIN foundusers
+			USING (actor_id)
+		WHERE ` + condition
+	err := app.db.QueryRow(stmt, value).Scan(&u.ID, &u.BaseObject.ID, &u.PreferredUsername, &u.Type, &u.Name, &u.Summary, &u.Created, &u.URL, &u.Following, &u.Followers, &u.Inbox, &u.Outbox, &u.Endpoints.SharedInbox, &u.Icon.URL, &u.Icon.Type, &u.Host)
 	switch {
 	case err == sql.ErrNoRows:
 		return nil, impart.HTTPError{http.StatusNotFound, "User not found"}

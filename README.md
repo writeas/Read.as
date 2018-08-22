@@ -47,7 +47,7 @@ You'll see your site at `localhost:8080`. Provide a different port with the `-p`
 
 ### Customizing
 
-Go to the `localusers` table in your database to update your account's display name and summary.
+Go to the `users` table in your database to update your account's display name and summary.
 
 ## Deployment
 

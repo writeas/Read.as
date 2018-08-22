@@ -440,19 +440,22 @@ func handleFollowUser(app *app, w http.ResponseWriter, r *http.Request) error {
 	handle := r.FormValue("user")
 	// Make webfinger request
 	userItems := strings.Split(handle, "@")
-	actorIRI, err := doWebfinger(userItems[1], userItems[0])
+	wfr, err := doWebfinger(userItems[1], userItems[0])
 	if err != nil {
 		logInfo("Webfinger failed: %v", err)
 		return err
 	}
-	logInfo("Webfinger success: %s", actorIRI)
 
-	remoteUser, err := app.getActor(actorIRI)
+	// Save webfinger result
+	logInfo("Webfinger success. Saving: %+v", wfr)
+	app.addFoundUser(wfr)
+
+	remoteUser, err := app.getActor(wfr.ActorIRI)
 	if err != nil {
 		if iErr, ok := err.(impart.HTTPError); ok {
 			if iErr.Status == http.StatusNotFound {
 				// Look up actor
-				remoteUser, _, err := fetchActor(app, actorIRI)
+				remotePerson, _, err := fetchActor(app, wfr.ActorIRI)
 				if err != nil {
 					logInfo("Actor fetch failed: %+v", err)
 					return err
@@ -460,12 +463,20 @@ func handleFollowUser(app *app, w http.ResponseWriter, r *http.Request) error {
 
 				// Save user locally
 				logInfo("Actor fetch success")
-				//logInfo("Actor fetch success: %+v", remoteUser)
-				_, err = app.addUser(remoteUser)
+				//logInfo("Actor fetch success: %+v", remotePerson)
+				_, err = app.addUser(remotePerson)
 				if err != nil {
 					return err
 				}
+				remoteUser, err = app.getActor(wfr.ActorIRI)
+				if err != nil {
+					return err
+				}
+			} else {
+				logError("Not NotFound error: %+v", err)
 			}
+		} else {
+			logError("Unable to get actor: %+v", err)
 		}
 	} else {
 		logInfo("Actor is local")
@@ -476,7 +487,7 @@ func handleFollowUser(app *app, w http.ResponseWriter, r *http.Request) error {
 	if err != nil {
 		return err
 	}
-	followActivity := activitystreams.NewFollowActivity(u.AccountRoot(app), actorIRI)
+	followActivity := activitystreams.NewFollowActivity(u.AccountRoot(app), wfr.ActorIRI)
 	err = makeActivityPost(u.AsPerson(app), remoteUser.Inbox, followActivity)
 	if err != nil {
 		logError("Couldn't post! %v", err)

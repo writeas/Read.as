@@ -5,12 +5,15 @@ import (
 	"github.com/writeas/web-core/activitystreams"
 	"github.com/writeas/web-core/auth"
 	"net/http"
+	"time"
 )
 
 // User is a remote user
 type User struct {
 	activitystreams.Person
-	ID int64 `json:"-"`
+	ID      int64     `json:"-"`
+	Host    string    `json:"-"`
+	Created time.Time `json:"-"`
 }
 
 func (u *User) AsPerson() *activitystreams.Person {

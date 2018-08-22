@@ -11,6 +11,7 @@ import (
 	"io/ioutil"
 	"net/http"
 	"net/http/httputil"
+	"strings"
 )
 
 var (
@@ -41,6 +42,12 @@ func (kg keyGetter) GetKey(id string) interface{} {
 
 func verifyRequest(app *app, r *http.Request) error {
 	return verifier.Verify(r)
+}
+
+type WebfingerResult struct {
+	ActorIRI string
+	Username string
+	Host     string
 }
 
 func makeActivityPost(p *activitystreams.Person, url string, m interface{}) error {
@@ -116,7 +123,7 @@ func resolveIRI(url string) ([]byte, error) {
 	return body, nil
 }
 
-func doWebfinger(host, username string) (string, error) {
+func doWebfinger(host, username string) (*WebfingerResult, error) {
 	url := "https://" + host + "/.well-known/webfinger?resource=acct:" + username + "@" + host
 	logInfo("Webfinger: %s", url)
 
@@ -135,18 +142,18 @@ func doWebfinger(host, username string) (string, error) {
 		defer resp.Body.Close()
 	}
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 	logInfo("Status  : %s", resp.Status)
 	logInfo("Response: %s", body)
 
 	if resp.StatusCode != 200 {
-		return "", impart.HTTPError{resp.StatusCode, ""}
+		return nil, impart.HTTPError{resp.StatusCode, ""}
 	}
 
 	resource := webfinger.Resource{}
@@ -164,8 +171,17 @@ func doWebfinger(host, username string) (string, error) {
 		actorIRI = l.HRef
 		break
 	}
+	subj := resource.Subject
+	if strings.HasPrefix(subj, "acct:") {
+		subj = subj[len("acct:"):]
+	}
+	handleItems := strings.Split(subj, "@")
 
-	return actorIRI, nil
+	return &WebfingerResult{
+		Username: handleItems[0],
+		Host:     handleItems[1],
+		ActorIRI: actorIRI,
+	}, nil
 }
 
 func fetchActor(app *app, actorIRI string) (*activitystreams.Person, *User, error) {
