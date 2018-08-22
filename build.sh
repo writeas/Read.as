@@ -15,9 +15,8 @@ go build -i -x ./cmd/readas || { echo 'Build failed. Aborting.' ; exit 1; }
 echo -e "$DEL Copying files..."
 rm -rf build
 mkdir build
-cp -r keys/ build/
 cp -r static/ build/
 cp -r templates/ build/
-cp cmd/readas/readas build/
+cp readas build/
 
 echo -e "$DEL Done!"
