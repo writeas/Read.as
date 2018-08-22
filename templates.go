@@ -4,7 +4,6 @@ import (
 	"html/template"
 	"io"
 	"log"
-	"net/http"
 )
 
 var templates = map[string]*template.Template{}
