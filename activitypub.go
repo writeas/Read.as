@@ -503,6 +503,7 @@ func handleFollowUser(app *app, w http.ResponseWriter, r *http.Request) error {
 		return err
 	}
 	followActivity := activitystreams.NewFollowActivity(u.AccountRoot(app), wfr.ActorIRI)
+	followActivity.ID = u.AccountRoot(app) + "#follow"
 	err = makeActivityPost(u.AsPerson(app), remoteUser.Inbox, followActivity)
 	if err != nil {
 		logError("Couldn't post! %v", err)
