@@ -84,12 +84,16 @@ func makeActivityPost(p *activitystreams.Person, url string, m interface{}) erro
 		defer resp.Body.Close()
 	}
 
-	body, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		return err
+	if resp == nil {
+		logInfo("No status or response.")
+	} else {
+		body, err := ioutil.ReadAll(resp.Body)
+		if err != nil {
+			return err
+		}
+		logInfo("Status  : %s", resp.Status)
+		logInfo("Response: %s", body)
 	}
-	logInfo("Status  : %s", resp.Status)
-	logInfo("Response: %s", body)
 
 	return nil
 }
