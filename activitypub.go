@@ -254,6 +254,26 @@ func handleFetchInbox(app *app, w http.ResponseWriter, r *http.Request) error {
 			logInfo("Accept: %s", b)
 			_, actorIRI := f.GetActor(0)
 			fullActor, remoteUser, err = fetchActor(app, actorIRI.String())
+			if u == nil {
+				// This is the shared inbox
+				logInfo("Shared inbox; fetching local user")
+
+				_, err = f.ResolveObject(&streams.Resolver{
+					FollowCallback: func(a *streams.Follow) error {
+						_, localActor := a.GetActor(0)
+						localUsername := localActor.String()[strings.LastIndex(localActor.String(), "/")+1:]
+						logInfo("Is Follow! Getting user: %s", localUsername)
+						u, err = app.getLocalUser(localUsername)
+						if err != nil {
+							return err
+						}
+						return nil
+					},
+				}, 0)
+				if err != nil {
+					return err
+				}
+			}
 			return impart.RenderActivityJSON(w, nil, http.StatusAccepted)
 		},
 		CreateCallback: func(f *streams.Create) error {
