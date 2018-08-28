@@ -3,6 +3,7 @@ package readas
 import (
 	"bytes"
 	"encoding/json"
+	"github.com/writeas/activity/streams"
 	"github.com/writeas/go-webfinger"
 	"github.com/writeas/httpsig"
 	"github.com/writeas/impart"
@@ -218,4 +219,58 @@ func fetchActor(app *app, actorIRI string) (*activitystreams.Person, *User, erro
 	}
 	// TODO: don't return all three; just (*User, error)
 	return actor, remoteUser, nil
+}
+
+// TODO: rename this to something better; it doesn't just fetch, but also adds posts
+func fetchActorOutbox(app *app, outbox string) error {
+	logInfo("Fetching actor outbox: " + outbox)
+	outRes, err := resolveIRI(outbox)
+	if err != nil {
+		logError("Unable to get outbox! %v", err)
+		return impart.HTTPError{http.StatusInternalServerError, "Couldn't fetch outbox."}
+	}
+	coll := &activitystreams.OrderedCollection{}
+	if err := json.Unmarshal(outRes, &coll); err != nil {
+		logError("Unable to unmarshal outbox! %v", err)
+		return impart.HTTPError{http.StatusInternalServerError, "Couldn't parse outbox."}
+	}
+
+	logInfo("Fetching actor outbox page: " + coll.First)
+	outPageRes, err := resolveIRI(coll.First)
+	if err != nil {
+		logError("Unable to get outbox page! %v", err)
+		return impart.HTTPError{http.StatusInternalServerError, "Couldn't fetch outbox page."}
+	}
+
+	var collPageMap map[string]interface{}
+	if err := json.Unmarshal(outPageRes, &collPageMap); err != nil {
+		return err
+	}
+	res := &streams.Resolver{
+		OrderedCollectionPageCallback: func(p *streams.OrderedCollectionPage) error {
+			itemsLen := p.LenOrderedItems()
+			logInfo("Ordered items: %d", itemsLen)
+			if itemsLen > 0 {
+				// Add posts in reverse order they're listed, since they're in reverse-chronological order
+				for i := itemsLen - 1; i >= 0; i-- {
+					_, err = p.ResolveOrderedItems(&streams.Resolver{
+						CreateCallback: func(f *streams.Create) error {
+							// Create post in database
+							return handleCreateCallback(app, f)
+						},
+					}, i)
+					if err != nil {
+						logError("Unable to resolve item: %v", err)
+					}
+				}
+			}
+			return nil
+		},
+	}
+	if err := res.Deserialize(collPageMap); err != nil {
+		logError("Unable to resolve OrderedCollectionPage: %v", err)
+		return err
+	}
+
+	return nil
 }

@@ -257,6 +257,7 @@ func handleFetchInbox(app *app, w http.ResponseWriter, r *http.Request) error {
 			return impart.RenderActivityJSON(w, nil, http.StatusAccepted)
 		},
 		CreateCallback: func(f *streams.Create) error {
+			// TODO: move everything to handleCreateCallback
 			isCreate = true
 
 			_, id := f.GetId()
@@ -385,6 +386,7 @@ func handleFetchInbox(app *app, w http.ResponseWriter, r *http.Request) error {
 				return err
 			}
 		}
+		fetchUserPosts(app, remoteUser)
 	} else if isCreate {
 		return nil
 	}
@@ -509,4 +511,57 @@ func handleFollowUser(app *app, w http.ResponseWriter, r *http.Request) error {
 		logError("Couldn't post! %v", err)
 	}
 	return impart.WriteSuccess(w, "", http.StatusOK)
+}
+
+func fetchUserPosts(app *app, u *User) error {
+	return fetchActorOutbox(app, u.Outbox)
+}
+
+func handleCreateCallback(app *app, f *streams.Create) error {
+	_, id := f.GetId()
+	_, published := f.GetPublished()
+	_, actorIRI := f.GetActor(0)
+	var postType, name, content string
+	var url *url.URL
+	artRes := &streams.Resolver{
+		ArticleCallback: func(a *streams.Article) error {
+			_, postType = a.GetType(0)
+			_, url = a.GetUrl(0)
+			_, name = a.GetName(0)
+			_, content = a.GetContent(0)
+			return nil
+		},
+		NoteCallback: func(a *streams.Note) error {
+			_, postType = a.GetType(0)
+			_, url = a.GetUrl(0)
+			_, content = a.GetContent(0)
+			return nil
+		},
+	}
+	_, err := f.ResolveObject(artRes, 0)
+	if err != nil {
+		return err
+	}
+	// FIXME: this won't work if the user doesn't exist locally
+	_, remoteUser, err := fetchActor(app, actorIRI.String())
+	if err != nil {
+		return err
+	}
+
+	// Insert post
+	err = app.createPost(&Post{
+		ActivityID: id.String(),
+		Type:       postType,
+		Published:  published,
+		URL:        url.String(),
+		Name:       name,
+		Content:    content,
+		OwnerID:    remoteUser.ID,
+		actorID:    actorIRI.String(),
+	})
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
