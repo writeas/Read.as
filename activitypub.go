@@ -298,7 +298,6 @@ func handleFetchInbox(app *app, w http.ResponseWriter, r *http.Request) error {
 					_, published = a.GetPublished()
 					_, postType = a.GetType(0)
 					_, url = a.GetUrl(0)
-					_, name = a.GetName(0)
 					_, content = a.GetContent(0)
 					return nil
 				},
