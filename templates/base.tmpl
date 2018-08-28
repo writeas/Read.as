@@ -20,7 +20,7 @@
 {{define "article"}}
 <article>
 	{{if .Name}}
-		<h1><a href="/p/{{.ID}}">{{.Name}}</a></h1>
+		<h1>{{if .IsInFeed}}<a href="/p/{{.ID}}">{{end}}{{.Name}}{{if .IsInFeed}}</a>{{end}}</h1>
 		<p class="author">by <a href="{{.Owner.URL}}">{{.Owner.Name}}</a> <span class="handle">@{{.Owner.PreferredUsername}}@{{.Owner.Host}}</span></p>
 	{{else}}
 		<h1><a href="/p/{{.ID}}">A post</a> by <a href="{{.Owner.URL}}">{{.Owner.Name}}</a></h1>

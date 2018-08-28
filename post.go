@@ -19,7 +19,8 @@ type Post struct {
 	Name       string
 	Content    string
 
-	actorID string
+	actorID  string
+	IsInFeed bool
 
 	Owner *User
 }

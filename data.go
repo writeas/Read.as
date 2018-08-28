@@ -313,7 +313,8 @@ func (app *app) getUserFeed(id int64, page int) (*[]Post, error) {
 	posts := []Post{}
 	for rows.Next() {
 		p := Post{
-			Owner: &User{},
+			Owner:    &User{},
+			IsInFeed: true,
 		}
 		err = rows.Scan(&p.ID, &p.OwnerID, &p.ActivityID, &p.Type, &p.Published, &p.URL, &p.Name, &p.Content, &p.Owner.Host, &p.Owner.PreferredUsername, &p.Owner.Name, &p.Owner.URL)
 		if err != nil {
@@ -333,7 +334,8 @@ func (app *app) getUserFeed(id int64, page int) (*[]Post, error) {
 
 func (app *app) getPost(id int64) (*Post, error) {
 	p := Post{
-		Owner: &User{},
+		Owner:    &User{},
+		IsInFeed: false,
 	}
 	stmt := `SELECT p.id, owner_id, activity_id, p.type, published, p.url, p.name, content, f.host, u.username, u.name, u.url
 		FROM posts p
