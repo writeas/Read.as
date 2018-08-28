@@ -261,12 +261,13 @@ func handleFetchInbox(app *app, w http.ResponseWriter, r *http.Request) error {
 			isCreate = true
 
 			_, id := f.GetId()
-			_, published := f.GetPublished()
 			_, actorIRI := f.GetActor(0)
+			var published time.Time
 			var postType, name, content string
 			var url *url.URL
 			artRes := &streams.Resolver{
 				ArticleCallback: func(a *streams.Article) error {
+					_, published = a.GetPublished()
 					_, postType = a.GetType(0)
 					_, url = a.GetUrl(0)
 					_, name = a.GetName(0)
@@ -274,6 +275,7 @@ func handleFetchInbox(app *app, w http.ResponseWriter, r *http.Request) error {
 					return nil
 				},
 				NoteCallback: func(a *streams.Note) error {
+					_, published = a.GetPublished()
 					_, postType = a.GetType(0)
 					_, url = a.GetUrl(0)
 					_, name = a.GetName(0)
@@ -519,12 +521,13 @@ func fetchUserPosts(app *app, u *User) error {
 
 func handleCreateCallback(app *app, f *streams.Create) error {
 	_, id := f.GetId()
-	_, published := f.GetPublished()
 	_, actorIRI := f.GetActor(0)
+	var published time.Time
 	var postType, name, content string
 	var url *url.URL
 	artRes := &streams.Resolver{
 		ArticleCallback: func(a *streams.Article) error {
+			_, published = a.GetPublished()
 			_, postType = a.GetType(0)
 			_, url = a.GetUrl(0)
 			_, name = a.GetName(0)
@@ -532,6 +535,7 @@ func handleCreateCallback(app *app, f *streams.Create) error {
 			return nil
 		},
 		NoteCallback: func(a *streams.Note) error {
+			_, published = a.GetPublished()
 			_, postType = a.GetType(0)
 			_, url = a.GetUrl(0)
 			_, content = a.GetContent(0)
