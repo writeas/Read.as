@@ -114,6 +114,9 @@ func resolveIRI(url string) ([]byte, error) {
 	}
 
 	resp, err := http.DefaultClient.Do(r)
+	if err != nil {
+		return nil, err
+	}
 	if resp != nil && resp.Body != nil {
 		defer resp.Body.Close()
 	}
