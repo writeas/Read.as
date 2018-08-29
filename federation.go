@@ -237,6 +237,11 @@ func fetchActorOutbox(app *app, outbox string) error {
 		logError("Unable to unmarshal outbox! %v", err)
 		return impart.HTTPError{http.StatusInternalServerError, "Couldn't parse outbox."}
 	}
+	if coll.First == "" {
+		// Not the OrderedCollection we were expecting, so quit now and don't fetch any posts
+		// TODO: parse the OrderedCollection `items` property and import those posts
+		return nil
+	}
 
 	logInfo("Fetching actor outbox page: " + coll.First)
 	outPageRes, err := resolveIRI(coll.First)
