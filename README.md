@@ -19,8 +19,8 @@ You can support the development of this project [on Patreon](https://www.patreon
 
 **Additional requirements for development**
 
-* Go 1.10+
-* Node.js
+* [Go 1.10+](https://golang.org/dl/)
+* [Node.js](https://nodejs.org/en/download/)
 
 ## Getting Started
 
