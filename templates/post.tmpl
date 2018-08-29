@@ -2,7 +2,7 @@
 	<html>
 	<head>
 		<meta charset="utf-8">
-		<title>{{.Post.Name}} &mdash; Read.as</title>
+		<title>{{.Post.Name}} &mdash; {{.InstanceName}}</title>
 		<link rel="stylesheet" type="text/css" href="/css/main.css" />
 		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
 		<link rel="canonical" href="{{.Post.URL}}" />
@@ -18,7 +18,7 @@
 		<meta name="twitter:title" content="{{.Post.DisplayTitle}}">
 		<meta property="og:title" content="{{.Post.DisplayTitle}}" />
 		<meta property="og:description" content="{{.Post.Summary}}" />
-		<meta property="og:site_name" content="Read.as" />
+		<meta property="og:site_name" content="{{.InstanceName}}" />
 		<meta property="og:type" content="article" />
 		<meta property="og:url" content="{{.Post.URL}}" />
 		<meta property="og:updated_time" content="{{.Post.Published8601}}" />

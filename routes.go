@@ -54,18 +54,20 @@ func handleViewHome(app *app, w http.ResponseWriter, r *http.Request) error {
 	}
 
 	p := struct {
-		User     *LocalUser
-		Version  string
-		Username string
-		Flash    string
-		To       string
-		Posts    *[]Post
+		User         *LocalUser
+		Version      string
+		InstanceName string
+		Username     string
+		Flash        string
+		To           string
+		Posts        *[]Post
 	}{
-		User:     u,
-		Version:  softwareVersion,
-		Username: r.FormValue("username"),
-		To:       r.FormValue("to"),
-		Posts:    &[]Post{},
+		User:         u,
+		Version:      softwareVersion,
+		InstanceName: app.cfg.Name,
+		Username:     r.FormValue("username"),
+		To:           r.FormValue("to"),
+		Posts:        &[]Post{},
 	}
 	if u != nil {
 		p.Posts, err = app.getUserFeed(u.ID, 1)

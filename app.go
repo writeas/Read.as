@@ -40,6 +40,9 @@ type config struct {
 	Host         string `json:"host"`
 	Port         int    `json:"port"`
 	MySQLConnStr string `json:"mysql_connection"`
+
+	// Instance
+	Name string `json:"instance_name"`
 }
 
 func Serve() {

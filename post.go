@@ -83,13 +83,15 @@ func handleViewPost(app *app, w http.ResponseWriter, r *http.Request) error {
 	}
 
 	p := struct {
-		User    *LocalUser
-		Version string
-		Post    *Post
+		User         *LocalUser
+		Version      string
+		InstanceName string
+		Post         *Post
 	}{
-		User:    u,
-		Version: softwareVersion,
-		Post:    &Post{},
+		User:         u,
+		Version:      softwareVersion,
+		InstanceName: app.cfg.Name,
+		Post:         &Post{},
 	}
 	p.Post, err = app.getPost(int64(id))
 	if err != nil {
