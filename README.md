@@ -24,9 +24,14 @@ You can support the development of this project [on Patreon](https://www.patreon
 
 ## Getting Started
 
-Import the schema in schema.sql, then run:
-
 ```bash
+# Set up database
+# - Log into MySQL and run:
+# CREATE DATABASE readas;
+# - Import the schema:
+mysql -u YOURUSERNAME -p readas < schema.sql
+
+# Install the application
 go get github.com/writeas/Read.as
 cd $GOPATH/src/github.com/writeas/Read.as
 make install
