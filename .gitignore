@@ -1,5 +1,8 @@
 *.swp
 
+# Configuration
+config.json
+
 # Build results
 readas
 build/

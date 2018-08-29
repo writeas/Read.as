@@ -9,7 +9,7 @@ type nodeInfoResolver struct{ app *app }
 func nodeInfoConfig(cfg *config) *nodeinfo.Config {
 	name := "Read.as"
 	return &nodeinfo.Config{
-		BaseURL: cfg.host,
+		BaseURL: cfg.Host,
 		InfoURL: "/api/nodeinfo",
 
 		Metadata: nodeinfo.Metadata{

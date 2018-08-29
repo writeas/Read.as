@@ -30,20 +30,32 @@ Import the schema in schema.sql, then run:
 go get github.com/writeas/Read.as
 cd $GOPATH/src/github.com/writeas/Read.as
 make install
+
+# Option 1: quick start
 export RA_MYSQL_CONNECTION="YOURUSERNAME:YOURPASSWORD@tcp(localhost:3306)/readas"
+readas -h "http://localhost:8080" -p 8080
+
+# Option 2: configure and run
+# Edit configuration
+cp config.example.json config.json
+vi config.json
 
 # Create initial account
 readas --user matt --pass hunter2
 
 # Launch server
-readas -h "http://localhost:8080"
+readas
 ```
 
-Replace `YOURUSERNAME` and `YOURPASSWORD` in the string above with your MySQL authentication information, and `readas` with your database name.
+### Configuration
 
-`-h "http://localhost:8080"` should be the public-facing URL your site is hosted at, including the scheme, and without a trailing slash.
+`host` or the `-h` option should be the public-facing URL your site is hosted at, including the scheme, and without a trailing slash.
 
-You'll see your site at `localhost:8080`. Provide a different port with the `-p` option, and be sure to update the `-h` option accordingly when running locally.
+`port` or the `-p` option will be the port your server runs on. In production, add a reverse proxy like nginx in front of the app and point to `localhost:PORT`.
+
+For `mysql_connection`, replace `YOURUSERNAME` and `YOURPASSWORD` with your MySQL authentication information, and `readas` with your database name.
+
+By default, you'll see your site at `localhost:8080`. Be sure to update the `host`/`-h` option accordingly when running locally.
 
 ### Customizing
 

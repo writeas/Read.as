@@ -14,7 +14,7 @@ type wfResolver struct {
 var wfUserNotFoundErr = impart.HTTPError{http.StatusNotFound, "User not found."}
 
 func (wfr wfResolver) FindUser(username string, host, requestHost string, r []webfinger.Rel) (*webfinger.Resource, error) {
-	realHost := wfr.app.cfg.host[strings.LastIndexByte(wfr.app.cfg.host, '/')+1:]
+	realHost := wfr.app.cfg.Host[strings.LastIndexByte(wfr.app.cfg.Host, '/')+1:]
 	if host != realHost {
 		return nil, impart.HTTPError{http.StatusBadRequest, "Host doesn't match"}
 	}
@@ -24,7 +24,7 @@ func (wfr wfResolver) FindUser(username string, host, requestHost string, r []we
 		return nil, err
 	}
 
-	profileURL := wfr.app.cfg.host + "/" + username
+	profileURL := wfr.app.cfg.Host + "/" + username
 	res := webfinger.Resource{
 		Subject: "acct:" + username + "@" + host,
 		Aliases: []string{

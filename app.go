@@ -2,6 +2,7 @@ package readas
 
 import (
 	"database/sql"
+	"encoding/json"
 	"flag"
 	"fmt"
 	"github.com/gorilla/mux"
@@ -9,6 +10,7 @@ import (
 	"github.com/gorilla/sessions"
 	"github.com/writeas/web-core/auth"
 	"github.com/writeas/web-core/converter"
+	"io/ioutil"
 	"log"
 	"net/http"
 	"os"
@@ -17,6 +19,7 @@ import (
 const (
 	serverName      = "Read.as"
 	softwareVersion = "0.2"
+	configFile      = "config.json"
 )
 
 var (
@@ -34,8 +37,9 @@ type app struct {
 }
 
 type config struct {
-	host string
-	port int
+	Host         string `json:"host"`
+	Port         int    `json:"port"`
+	MySQLConnStr string `json:"mysql_connection"`
 }
 
 func Serve() {
@@ -44,13 +48,29 @@ func Serve() {
 	}
 
 	var newUser, newPass string
-	flag.IntVar(&app.cfg.port, "p", 8080, "Port to start server on")
-	flag.StringVar(&app.cfg.host, "h", "https://read.as", "Site's base URL")
+	flag.IntVar(&app.cfg.Port, "p", 8080, "Port to start server on")
+	flag.StringVar(&app.cfg.Host, "h", "", "Site's base URL")
+
+	// options for creating a new user
 	flag.StringVar(&newUser, "user", "", "New user's username. Should be paired with --pass")
 	flag.StringVar(&newPass, "pass", "", "Password for new user. Should be paired with --user")
 	flag.Parse()
 
-	userAgent = "Go (" + serverName + "/" + softwareVersion + "; +" + app.cfg.host + ")"
+	if app.cfg.Host == "" || os.Getenv("RA_MYSQL_CONNECTION") == "" {
+		log.Printf("Reading %s", configFile)
+		// Read configuration if information not passed in via flags or environment vars
+		f, err := ioutil.ReadFile(configFile)
+		if err != nil {
+			log.Fatal("File error: %v\n", err)
+		}
+
+		err = json.Unmarshal(f, &app.cfg)
+		if err != nil {
+			log.Fatalf("Unable to read user config: %v", err)
+		}
+	}
+
+	userAgent = "Go (" + serverName + "/" + softwareVersion + "; +" + app.cfg.Host + ")"
 
 	logInfo = log.New(os.Stdout, "", log.Ldate|log.Ltime).Printf
 	logError = log.New(os.Stderr, "ERROR: ", log.Ldate|log.Ltime|log.Lshortfile).Printf
@@ -96,8 +116,8 @@ func Serve() {
 	initRoutes(app)
 
 	http.Handle("/", app.router)
-	logInfo("Serving on localhost:%d", app.cfg.port)
-	http.ListenAndServe(fmt.Sprintf(":%d", app.cfg.port), nil)
+	logInfo("Serving on localhost:%d", app.cfg.Port)
+	http.ListenAndServe(fmt.Sprintf(":%d", app.cfg.Port), nil)
 }
 
 func initConverter() {

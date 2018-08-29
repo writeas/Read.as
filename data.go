@@ -18,10 +18,14 @@ const (
 )
 
 func initDatabase(app *app) error {
-	mysqlConnStr := os.Getenv("RA_MYSQL_CONNECTION")
+	mysqlConnStr := app.cfg.MySQLConnStr
 	if mysqlConnStr == "" {
-		return fmt.Errorf("No database configuration. Provide RA_MYSQL_CONNECTION environment variable.")
+		mysqlConnStr = os.Getenv("RA_MYSQL_CONNECTION")
+		if mysqlConnStr == "" {
+			return fmt.Errorf("No database configuration. Provide RA_MYSQL_CONNECTION environment variable.")
+		}
 	}
+
 	var err error
 	app.db, err = sql.Open("mysql", mysqlConnStr+"?charset=utf8mb4&parseTime=true")
 	if err != nil {

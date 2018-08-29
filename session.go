@@ -24,7 +24,7 @@ func initSession(app *app) error {
 		Path:     "/",
 		MaxAge:   sessionLength,
 		HttpOnly: true,
-		Secure:   strings.HasPrefix(app.cfg.host, "https://"),
+		Secure:   strings.HasPrefix(app.cfg.Host, "https://"),
 	}
 	return nil
 }

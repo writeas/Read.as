@@ -1,0 +1,5 @@
+{
+	"host": "https://read.as",
+	"port": 8080,
+	"mysql_connection": "YOURUSERNAME:YOURPASSWORD@tcp(localhost:3306)/readas"
+}
