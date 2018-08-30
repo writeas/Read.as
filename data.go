@@ -273,7 +273,16 @@ func (app *app) getUserBy(condition string, value interface{}) (*User, error) {
 
 func (app *app) createPost(p *Post) error {
 	_, err := app.db.Exec("INSERT INTO posts (owner_id, activity_id, type, published, url, name, content) VALUES ((SELECT id FROM users WHERE actor_id = ?), ?, ?, ?, ?, ?, ?)", p.actorID, p.ActivityID, p.Type, p.Published, p.URL, p.Name, p.Content)
-	return err
+	if err != nil {
+		if mysqlErr, ok := err.(*mysql.MySQLError); ok {
+			if mysqlErr.Number == mySQLErrDuplicateKey {
+				logInfo("Post already exists. Skipping.")
+				return nil
+			}
+		}
+		return err
+	}
+	return nil
 }
 
 func (app *app) updatePost(p *Post) error {
