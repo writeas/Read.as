@@ -187,7 +187,7 @@ func handleFetchInbox(app *app, w http.ResponseWriter, r *http.Request) error {
 
 	a := streams.NewAccept()
 	var to *url.URL
-	var isFollow, isUnfollow, isAccept, isCreate bool
+	var isFollow, isUnfollow, isAccept, isHandled bool
 	fullActor := &activitystreams.Person{}
 	var remoteUser *User
 
@@ -278,7 +278,7 @@ func handleFetchInbox(app *app, w http.ResponseWriter, r *http.Request) error {
 		},
 		CreateCallback: func(f *streams.Create) error {
 			// TODO: move everything to handleCreateCallback
-			isCreate = true
+			isHandled = true
 
 			_, id := f.GetId()
 			_, actorIRI := f.GetActor(0)
@@ -330,7 +330,7 @@ func handleFetchInbox(app *app, w http.ResponseWriter, r *http.Request) error {
 			return impart.RenderActivityJSON(w, nil, http.StatusAccepted)
 		},
 		UpdateCallback: func(f *streams.Update) error {
-			isCreate = true
+			isHandled = true
 
 			_, id := f.GetId()
 			_, actorIRI := f.GetActor(0)
@@ -408,7 +408,7 @@ func handleFetchInbox(app *app, w http.ResponseWriter, r *http.Request) error {
 			}
 		}
 		fetchUserPosts(app, remoteUser)
-	} else if isCreate {
+	} else if isHandled {
 		return nil
 	}
 
