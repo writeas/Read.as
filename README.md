@@ -4,7 +4,7 @@ Read.as is a free and open-source long-form reader built on open web protocols (
 
 It's written in Go (golang), and aims to use (minimal) plain Javascript on the frontend.
 
-You can support the development of this project [on Patreon](https://www.patreon.com/thebaer) or [Liberapay](https://liberapay.com/writeas), or by becoming a [Write.as subscriber](https://write.as/subscribe).
+You can support the development of this project [on Patreon](https://www.patreon.com/writeas) or [Liberapay](https://liberapay.com/writeas), or by becoming a [Write.as subscriber](https://write.as/subscribe).
 
 ## Features
 
