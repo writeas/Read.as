@@ -2,6 +2,8 @@ package readas
 
 import (
 	"bytes"
+	"crypto/sha256"
+	"encoding/base64"
 	"encoding/json"
 	"github.com/writeas/activity/streams"
 	"github.com/writeas/go-webfinger"
@@ -61,13 +63,16 @@ func makeActivityPost(p *activitystreams.Person, url string, m interface{}) erro
 	r, _ := http.NewRequest("POST", url, bytes.NewBuffer(b))
 	r.Header.Add("Content-Type", "application/activity+json")
 	r.Header.Set("User-Agent", userAgent)
+	h := sha256.New()
+	h.Write(b)
+	r.Header.Add("Digest", "SHA-256="+base64.StdEncoding.EncodeToString(h.Sum(nil)))
 
 	// Sign using the 'Signature' header
 	privKey, err := activitypub.DecodePrivateKey(p.GetPrivKey())
 	if err != nil {
 		return err
 	}
-	signer := httpsig.NewSigner(p.PublicKey.ID, privKey, httpsig.RSASHA256, nil)
+	signer := httpsig.NewSigner(p.PublicKey.ID, privKey, httpsig.RSASHA256, []string{"(request-target)", "date", "host", "digest"})
 	err = signer.SignSigHeader(r)
 	if err != nil {
 		logError("Can't sign: %v", err)
