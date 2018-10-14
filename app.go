@@ -120,6 +120,7 @@ func Serve() {
 
 	http.Handle("/", app.router)
 	logInfo("Serving on localhost:%d", app.cfg.Port)
+	logInfo("Public URL: %s", app.cfg.Host)
 	http.ListenAndServe(fmt.Sprintf(":%d", app.cfg.Port), nil)
 }
 
